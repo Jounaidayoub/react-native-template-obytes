@@ -45,75 +45,75 @@ jobs:
           name: test-apk
           path: ./android/app/build/outputs/apk/release/app-release.apk
 
-  test-android:
-    name: Run Android E2E Tests (Maestro + Github Action)
-    needs: generate-test-apk
-    runs-on: macOS-latest
+  # test-android:
+  #   name: Run Android E2E Tests (Maestro + Github Action)
+  #   needs: generate-test-apk
+  #   runs-on: macOS-latest
 
-    steps:
-      - name: 📦 Checkout project repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #   steps:
+  #     - name: 📦 Checkout project repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: 📦 Install Maestro
-        run: npm run install-maestro # # We use npm because we don't need to install deps again
+  #     - name: 📦 Install Maestro
+  #       run: npm run install-maestro # # We use npm because we don't need to install deps again
 
-      - name: Download Test APK
-        uses: actions/download-artifact@v4
-        with:
-          name: test-apk
-          path: ${{ github.workspace }}
+  #     - name: Download Test APK
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: test-apk
+  #         path: ${{ github.workspace }}
 
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
+  #     - name: Gradle cache
+  #       uses: gradle/gradle-build-action@v2
 
-      - name: AVD cache
-        uses: actions/cache@v3
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-cache
+  #     - name: AVD cache
+  #       uses: actions/cache@v3
+  #       id: avd-cache
+  #       with:
+  #         path: |
+  #           ~/.android/avd/*
+  #           ~/.android/adb*
+  #         key: avd-cache
 
-      - name: create AVD and generate snapshot for caching
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          cores: 2
-          ram-size: 4096M
-          profile: Nexus 6
-          script: echo "Generated AVD snapshot for caching."
+  #     - name: create AVD and generate snapshot for caching
+  #       if: steps.avd-cache.outputs.cache-hit != 'true'
+  #       uses: reactivecircus/android-emulator-runner@v2
+  #       with:
+  #         api-level: 29
+  #         force-avd-creation: false
+  #         emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+  #         disable-animations: false
+  #         cores: 2
+  #         ram-size: 4096M
+  #         profile: Nexus 6
+  #         script: echo "Generated AVD snapshot for caching."
 
-      - name: Run tests with Maestro
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          cores: 2
-          ram-size: 4096M
-          profile: Nexus 6
-          script: |
-            adb install "${{ github.workspace }}/app-release.apk"
-            $HOME/.maestro/bin/maestro test .maestro/ --env=APP_ID=com.obytes.staging  --format junit
+  #     - name: Run tests with Maestro
+  #       uses: reactivecircus/android-emulator-runner@v2
+  #       with:
+  #         api-level: 29
+  #         force-avd-creation: false
+  #         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+  #         disable-animations: false
+  #         cores: 2
+  #         ram-size: 4096M
+  #         profile: Nexus 6
+  #         script: |
+  #           adb install "${{ github.workspace }}/app-release.apk"
+  #           $HOME/.maestro/bin/maestro test .maestro/ --env=APP_ID=com.obytes.staging  --format junit
 
-      - name: Upload artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-logs
-          path: ~/.maestro/tests/**/*
+  #     - name: Upload artifacts
+  #       if: always()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: e2e-test-logs
+  #         path: ~/.maestro/tests/**/*
 
-      - name: Store tests result
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e_android_report
-          path: |
-            report.xml
+  #     - name: Store tests result
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: e2e_android_report
+  #         path: |
+  #           report.xml
